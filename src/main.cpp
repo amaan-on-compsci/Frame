@@ -95,6 +95,8 @@ void MainFrame::OnPaint(wxPaintEvent &event)
 
 }
 
+
+
 int main(int argc, char *argv[])
 {
     // Initialize wxWidgets
