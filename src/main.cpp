@@ -9,61 +9,59 @@ public:
     MainFrame(const wxString &title, const wxPoint &pos, const wxSize &size);
 
 private:
-    void OnOpenFile(wxCommandEvent &event);
-    void OnPaint(wxPaintEvent &event);
+    void FileOpened(wxCommandEvent &event);
+    void Painting(wxPaintEvent &event);
 
     wxPanel *panel;
     wxButton *openButton;
     wxStaticText *infoLabel;
-    wxBitmap imageBitmap; // Store the loaded image as a bitmap
-    wxString imagePath;   // Store the path to the loaded image
+    wxBitmap imageBitmap; // load image as a bitmap
+    wxString imagePath;   // path to the loaded image
 };
 
 MainFrame::MainFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
     : wxFrame(NULL, wxID_ANY, title, pos, size), imagePath(wxEmptyString)
 {
-    // Register the TIFF image handler
+    // tiff image handler
     wxImage::AddHandler(new wxTIFFHandler);
 
-    // Create a custom panel to set the background color
+    // this panel is used within the main frame, its customizable
     panel = new wxPanel(this, wxID_ANY);
-    panel->Bind(wxEVT_PAINT, &MainFrame::OnPaint, this);
+    panel->Bind(wxEVT_PAINT, &MainFrame::Painting, this);
 
-    //Set the background color
+    // for example, we set the bg color here using wxWidget's methods
     wxColor backgroundColor(30, 30, 30);
     panel->SetBackgroundColour(backgroundColor);
 
-    // Create a vertical box sizer for the main layout
+    // create vertical and horizontal box sizers for positioning
     wxBoxSizer *mainSizer = new wxBoxSizer(wxVERTICAL);
-
-    // Create a centered horizontal box sizer for the button
     wxBoxSizer *buttonSizer = new wxBoxSizer(wxHORIZONTAL);
     buttonSizer->AddStretchSpacer();
-    
-    // Create an "Open File" button and center it horizontally
-    openButton = new wxButton(panel, wxID_ANY, "  Choose Image     ", wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
-    openButton->Bind(wxEVT_BUTTON, &MainFrame::OnOpenFile, this);
 
-    // Set a nicer font and style for the button
+    // open file button to choose the image
+    openButton = new wxButton(panel, wxID_ANY, "  Choose Image     ", wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER);
+    openButton->Bind(wxEVT_BUTTON, &MainFrame::FileOpened, this);
+
+    // customizing the button
     wxFont buttonFont(12, wxROMAN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
     openButton->SetFont(buttonFont);
     openButton->SetForegroundColour(*wxWHITE);
     openButton->SetBackgroundColour(*wxBLACK);
-    
+
     buttonSizer->Add(openButton, 0, wxALIGN_CENTER);
     buttonSizer->AddStretchSpacer();
-    
-    // Add the button sizer to the main sizer
+
+    // this is done to align the button to the center of the screen on top
     mainSizer->Add(buttonSizer, 0, wxEXPAND);
     mainSizer->AddStretchSpacer();
-    
-    // Set the sizer for the custom panel
+
+    // set the position for panel using mainSizer within SetSizer
     panel->SetSizer(mainSizer);
 }
 
-void MainFrame::OnOpenFile(wxCommandEvent &event)
+void MainFrame::FileOpened(wxCommandEvent &event)
 {
-    // Create a file dialog to choose a .tif file
+    // opens a file dialog box to let the user select a .tif file
     wxFileDialog openFileDialog(this, "Open .tif Image", "", "", "TIFF files (*.tif)|*.tif", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
     if (openFileDialog.ShowModal() == wxID_CANCEL)
@@ -71,13 +69,13 @@ void MainFrame::OnOpenFile(wxCommandEvent &event)
 
     imagePath = openFileDialog.GetPath();
 
-    // Load and display the image using wxWidgets
+    // use wxWidgets to load and then open the image by storing it in the bitmap variable
     wxImage image;
     if (image.LoadFile(imagePath, wxBITMAP_TYPE_TIF))
     {
         imageBitmap = wxBitmap(image);
 
-        // Trigger a repaint event to display the loaded image
+        // repaint the panel to display image
         panel->Refresh();
     }
     else
@@ -86,38 +84,37 @@ void MainFrame::OnOpenFile(wxCommandEvent &event)
     }
 }
 
-void MainFrame::OnPaint(wxPaintEvent &event)
+void MainFrame::Painting(wxPaintEvent &event)
 {
-    // Custom paint event handler to display the loaded image
+    // paint event handles the image painting within the panel
     wxPaintDC dc(panel);
 
     if (imageBitmap.IsOk())
     {
-        // Get the panel size
         int panelWidth, panelHeight;
         panel->GetSize(&panelWidth, &panelHeight);
 
-        // Calculate the position to center the image
+        // variables to center the image inside the panel
         int x = (panelWidth - imageBitmap.GetWidth()) / 2;
         int y = (panelHeight - imageBitmap.GetHeight()) / 2;
 
-        // Draw the loaded image in the center
+        // draw the image 
         dc.DrawBitmap(imageBitmap, x, y, false);
     }
 }
 
 int main(int argc, char *argv[])
 {
-    // Initialize wxWidgets
+    // start wxWidgets
     wxApp::SetInstance(new wxApp);
     wxEntryStart(argc, argv);
     wxTheApp->OnInit();
 
-    // Create the custom frame
+    // create the frame 
     MainFrame *frame = new MainFrame("TIFF Image Renderer", wxDefaultPosition, wxSize(800, 600));
     frame->Show(true);
 
-    // Start the wxWidgets event loop
+    // start event loop for wxWidgets
     wxTheApp->MainLoop();
 
     return 0;
