@@ -1,0 +1,6 @@
+[submodule "vendor/SDL"]
+	path = vendor/SDL
+	url = https://github.com/libsdl-org/SDL.git
+[submodule "vendor/wxWidgets"]
+	path = vendor/wxWidgets
+	url = https://github.com/wxWidgets/wxWidgets.git
